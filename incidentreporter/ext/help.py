@@ -47,8 +47,8 @@ class Help(commands.Cog):
         github = 'https://github.com/Le0Developer/incident-reporter'
         await ctx.send(embed=discord.Embed(
             description=(
-                f'Incident Reporter is an opensource discord bot for managing '
-                f'incidents.\nIncident Reporter is '
+                f'[Incident Reporter is an opensource]({github}) discord bot '
+                f'for managing incidents.\nIncident Reporter is '
                 f'[licensed under MIT]({github}/blob/master/LICENSE).'
             ),
             color=ctx.bot.colorsg['info']
