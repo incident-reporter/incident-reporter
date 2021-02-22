@@ -16,16 +16,16 @@ from prometheus_client.exposition import (
 class Prometheus(commands.Cog):
     def __init__(self, bot: commands.Bot, registry):
         self.pr_messages = Counter(
-            'agnambot_messages', 'Total messages', registry=registry
+            'incidentreporter_messages', 'Total messages', registry=registry
         )
         self.pr_commands = Counter(
-            'agnambot_commands', 'Total commands', registry=registry
+            'incidentreporter_commands', 'Total commands', registry=registry
         )
         self.pr_exceptions = Counter(
-            'agnambot_exceptions', 'Unhandled exceptions', registry=registry
+            'incidentreporter_exceptions', 'Unhandled exceptions', registry=registry
         )
         self.pr_guilds = Gauge(
-            'agnambot_guilds', 'Guilds', registry=registry
+            'incidentreporter_guilds', 'Guilds', registry=registry
         )
         self.pr_guilds.set_function(lambda: len(bot.guilds))
 
