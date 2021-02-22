@@ -26,7 +26,7 @@ class Data(commands.Cog):
                 )
             )
 
-        stor = ctx.bot.storage  # tpye: Storage
+        stor = ctx.bot.storage  # type: Storage
 
         keys = []
         async for key in stor.scan(f'guild:{ctx.guild.id}:*'):
