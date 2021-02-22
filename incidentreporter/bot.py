@@ -232,7 +232,9 @@ class IncidentReporterBot(commands.Bot):
                 color=self.colorsg['failure']
             ))
 
-        error = base64.b64encode(ctx.message.id.to_bytes(12, 'big')).decode()
+        error = base64.urlsafe_b64encode(
+            ctx.message.id.to_bytes(12, 'big')
+        ).decode()
         error_text = ''.join(traceback.format_exception(
             type(exception), exception, exception.__traceback__
         ))

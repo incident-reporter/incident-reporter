@@ -21,7 +21,7 @@ class ErrorlogCleaner(commands.Cog):
         now = datetime.datetime.utcnow()
         for errorlog in self.errorlog.iterdir():
             if not errorlog.name.startswith('.') and errorlog.suffix == '.log':
-                messageid = base64.b64decode(errorlog.stem.encode())
+                messageid = base64.urlsafe_b64decode(errorlog.stem.encode())
                 time = snowflake_time(int.from_bytes(messageid, 'big'))
                 if (now - time).total_seconds() > self.maxage:
                     errorlog.unlink()
