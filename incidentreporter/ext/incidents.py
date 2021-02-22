@@ -116,7 +116,6 @@ class Incidents(commands.Cog):
         tzinfo = datetime.timezone(datetime.timedelta(seconds=offset))
 
         format = '%Y-%m-%d %H:%M:%S (UTC%z)'
-        print(time, time.astimezone(tzinfo), offset, tzinfo)
         return time.astimezone(tzinfo).strftime(format)
 
     @commands.command(help='Create a new incident')
