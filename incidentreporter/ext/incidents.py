@@ -56,11 +56,11 @@ class Incidents(commands.Cog):
         ))
 
         updates = [json.loads(x) for x in await updates.copy()]
-        message = '\n\n'.join(
+        message = '\n\n'.join([
             f'{EMOJIS[state]} **{state}**: {message}\n'
-            f'*{self.format_time(when)}*'
+            f'*{await self.format_time(gstorage, when)}*'
             for state, message, when in updates
-        )
+        ])
 
         resolved = updates[-1][0] == STATE_RESOLVED
         title = ':hammer_pick: ' + (
@@ -110,9 +110,14 @@ class Incidents(commands.Cog):
         await ctx.message.add_reaction('👍')
 
     @staticmethod
-    def format_time(time):
+    async def format_time(storage: Storage, time: str):
+        time = datetime.datetime.fromisoformat(time)
+        offset = await storage.get_float('timezone', default=0)
+        tzinfo = datetime.timezone(datetime.timedelta(seconds=offset))
+
         format = '%Y-%m-%d %H:%M:%S (UTC%z)'
-        return datetime.datetime.fromisoformat(time).strftime(format)
+        print(time, time.astimezone(tzinfo), offset, tzinfo)
+        return time.astimezone(tzinfo).strftime(format)
 
     @commands.command(help='Create a new incident')
     @is_staff()
