@@ -73,8 +73,14 @@ class Incidents(commands.Cog):
         embed = discord.Embed(
             title=title,
             description=message,
-            color=color
-        ).set_footer(text=f'Incident #{incident}')
+            color=color,
+            timestamp=datetime.datetime.fromisoformat(
+                updates[-1][2] if resolved else updates[0][2]
+            )
+        ).set_footer(text=f'Incident #{incident} | ' + (
+            'Incident resolved at ' if resolved else
+            'Incident started at '
+        ))
 
         messageid = await storage.get_int('message')
         if messageid is None:
