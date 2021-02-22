@@ -108,6 +108,9 @@ class IncidentReporterBot(commands.Bot):
 
     async def on_ready(self):
         if not self._loaded_extensions:
+            if self.config.getboolean('prometheus', 'enabled'):
+                EXTENSIONS.append('incidentreporter.ext.prometheus')
+
             logger.info('loading extensions')
             for extension in EXTENSIONS:
                 logger.info(f'loading extension: {extension}')
