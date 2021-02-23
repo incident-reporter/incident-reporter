@@ -22,6 +22,7 @@ EXTENSIONS = [
     'incidentreporter.ext.dev',
     'incidentreporter.ext.help',
     'incidentreporter.ext.incidents',
+    'incidentreporter.ext.premium',
     'incidentreporter.ext.roles',
 ]
 INTENTS = discord.Intents(
@@ -213,6 +214,11 @@ class IncidentReporterBot(commands.Bot):
                         "Make sure you've the **Manage Server** permission or "
                         "have one of the staff roles."
                     ),
+                    color=self.colorsg['failure']
+                ))
+            elif isinstance(exception, NotPremium):
+                return await ctx.send(embed=discord.Embed(
+                    description='You need premium to use this command',
                     color=self.colorsg['failure']
                 ))
 

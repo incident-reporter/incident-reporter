@@ -8,6 +8,10 @@ class NotStaff(commands.CheckFailure):
     pass
 
 
+class NotPremium(commands.CheckFailure):
+    pass
+
+
 def is_staff():
     async def predicate(ctx: commands.Context):
         if ctx.channel.permissions_for(ctx.author).manage_guild:
@@ -19,5 +23,14 @@ def is_staff():
                 return True
 
         raise NotStaff()
+
+    return commands.check(predicate)
+
+
+def has_premium():
+    async def predicate(ctx: commands.Context):
+        storage = ctx.bot.get_storage(ctx.guild)  # type: Storage
+        if not await storage.exists('premium'):
+            raise NotPremium()
 
     return commands.check(predicate)
