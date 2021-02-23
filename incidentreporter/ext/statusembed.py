@@ -44,8 +44,6 @@ class StatusEmbed(commands.Cog):
                     f'incident:{textid}'
                 )
 
-        print(texts, incidents)
-
         message = f'{EMOJIS[STATE_OPERATIONAL]} __All systems operational__'
         color = COLORS[STATE_OPERATIONAL]
         if len(incidents) == len(texts):
