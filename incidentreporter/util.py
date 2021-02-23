@@ -30,7 +30,8 @@ def is_staff():
 def has_premium():
     async def predicate(ctx: commands.Context):
         storage = ctx.bot.get_storage(ctx.guild)  # type: Storage
-        if not await storage.exists('premium'):
-            raise NotPremium()
+        if await storage.exists('premium'):
+            return True
+        raise NotPremium()
 
     return commands.check(predicate)
