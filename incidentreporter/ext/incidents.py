@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 
 from ..storage import Storage
-from ..util import is_staff
+from ..util import has_premium, is_staff
 
 
 STATE_OUTAGE = 'Outage'
@@ -14,19 +14,22 @@ STATE_PARTIAL_OUTAGE = 'Partial Outage'
 STATE_MAINTENANCE = 'Maintenance'
 STATE_UPDATE = 'Update'
 STATE_RESOLVED = 'Resolved'
+STATE_OPERATIONAL = 'Operational'
 
 EMOJIS = {
     STATE_OUTAGE: '<:outage:812640646937706547>',
     STATE_PARTIAL_OUTAGE: '<:partial:812640663539679302>',
     STATE_MAINTENANCE: '<:partial:812640663539679302>',
     STATE_UPDATE: ':memo:',
-    STATE_RESOLVED: '<:resolved:812640676701143050>'
+    STATE_RESOLVED: '<:resolved:812640676701143050>',
+    STATE_OPERATIONAL: '<:resolved:812640676701143050>'
 }
 COLORS = {
     STATE_OUTAGE: 0xff0000,
     STATE_PARTIAL_OUTAGE: 0xfaa61a,
     STATE_MAINTENANCE: 0xfaa61a,
-    STATE_RESOLVED: 0x00ff00
+    STATE_RESOLVED: 0x00ff00,
+    STATE_OPERATIONAL: 0x00ff00
 }
 
 
@@ -55,6 +58,26 @@ class Incidents(commands.Cog):
             (state, message, ctx.message.created_at.isoformat())
         ))
 
+        status = await storage.get_int('status')
+        if status is not None:
+            if state == STATE_RESOLVED:
+                messageid = await storage.get_int('message')
+                id = await storage.get_int('textid')
+                await gstorage.delete(f'incident:{incident}:channel',
+                                      f'statusembed:{status}:incident:{id}')
+                await ctx.bot.get_cog('StatusEmbed').update_statusembed(
+                    ctx, status, incident=True
+                )
+                try:
+                    await ctx.bot.http.delete_message(channel.id, messageid)
+                except discord.NotFound:
+                    pass
+                await ctx.message.add_reaction('👍')
+                return
+            await ctx.bot.get_cog('StatusEmbed').update_statusembed(
+                ctx, status, incident=True
+            )
+
         updates = [json.loads(x) for x in await updates.copy()]
         message = '\n\n'.join([
             f'{EMOJIS[state]} **{state}**: {message}\n'
@@ -67,9 +90,10 @@ class Incidents(commands.Cog):
             'Resolved incident' if resolved else 'Ongoing incident'
         )
         color = COLORS[STATE_OUTAGE]
-        for state, _, _ in updates:
+        for state, _, _ in updates[::-1]:
             if state in COLORS:
                 color = COLORS[state]
+                break
         embed = discord.Embed(
             title=title,
             description=message,
@@ -184,10 +208,13 @@ class Incidents(commands.Cog):
             color=ctx.bot.colorsg['success']
         ))
 
-    async def create_new(self, ctx: commands.Context,
-                         channel: discord.TextChannel, state: str,
-                         message: str):
-        if not channel.permissions_for(ctx.guild.me).send_messages:
+    async def create_new(
+                self, ctx: commands.Context, channel: discord.TextChannel,
+                state: str, message: str, *,
+                status: int = None, textid: int = None
+            ):
+        perms = channel.permissions_for(ctx.guild.me)
+        if not perms.send_messages:
             return await ctx.send(embed=discord.Embed(
                 description=(
                     f"I'm missing the **send messages** permission "
@@ -196,6 +223,16 @@ class Incidents(commands.Cog):
                 ),
                 color=ctx.bot.colorsg['failure']
             ))
+        if not perms.embed_links:
+            return await ctx.send(embed=discord.Embed(
+                description=(
+                    f"I'm missing the **embed links** permission "
+                    f"in {channel.mention}.\n"
+                    f"Correct my permissions and try again!"
+                ),
+                color=ctx.bot.colorsg['failure']
+            ))
+
         allowed_states = STATE_OUTAGE, STATE_PARTIAL_OUTAGE, STATE_MAINTENANCE
         if state not in allowed_states:
             prefix = (await ctx.bot.get_command_prefix(ctx.bot,
@@ -217,6 +254,11 @@ class Incidents(commands.Cog):
         storage = ctx.bot.get_storage(ctx.guild)  # type: Storage
         incident = await storage.increment('incidents')
         await storage.set(f'incident:{incident}:channel', channel.id)
+        if status is not None:
+            await storage.set(f'incident:{incident}:status', status)
+            await storage.set(f'incident:{incident}:textid', textid - 1)
+            await storage.set(f'statusembed:{status}:incident:{textid - 1}',
+                              incident)
         await self.update_incident(ctx, state, incident, message)
 
         prefix = (await ctx.bot.get_command_prefix(ctx.bot, ctx.message))[0]
@@ -224,7 +266,7 @@ class Incidents(commands.Cog):
             title=f'Incident {incident} created!',
             description=(
                 f'The incident id is **{incident}**.\n\n'
-                f'You can now use commands to update the incident.\n'
+                f'You can now use commands to manage the incident.\n'
                 f'- `{prefix}update {incident} An awesome update.`\n'
                 f'- `{prefix}resolve {incident} The issue has been resolved.`'
             ),
@@ -262,6 +304,41 @@ class Incidents(commands.Cog):
     async def resolve(self, ctx: commands.Context, incident: int, *,
                       message: str):
         await self.update_incident(ctx, STATE_RESOLVED, incident, message)
+
+    @commands.command(help='')
+    @is_staff()
+    @has_premium()
+    async def statusincident(
+                self, ctx: commands.Context, id: int, textid: int, state: str, *,
+                message: str
+            ):
+        gstorage = ctx.bot.get_storage(ctx.guild)  # type: Storage
+        storage = gstorage / 'statusembed' / str(id)
+        if not await storage.exists('message'):
+            return await ctx.send(embed=discord.Embed(
+                description='No statusembed with that id exists.',
+                color=ctx.bot.colorsg['failure']
+            ))
+
+        texts = storage.as_list('text')
+        if textid <= 0 or textid > await texts.len():
+            return await ctx.send(embed=discord.Embed(
+                description='Invalid text id.',
+                color=ctx.bot.colorsg['failure']
+            ))
+
+        if await storage.exists(f'incident:{textid - 1}'):
+            return await ctx.send(embed=discord.Embed(
+                description='There already is an ongoing issue with that '
+                            'system.',
+                color=ctx.bot.colorsg['failure']
+            ))
+
+        channel = await storage.get_int('channel')
+        await self.create_new(
+            ctx, ctx.guild.get_channel(channel), state, message,
+            status=id, textid=textid
+        )
 
 
 def setup(bot: commands.Bot):

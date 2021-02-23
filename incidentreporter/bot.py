@@ -10,9 +10,10 @@ import traceback
 import aredis
 import discord
 from discord.ext import commands
+import httpx
 
 from .storage import Storage
-from .util import NotStaff
+from .util import NotStaff, NotPremium
 
 
 EXTENSIONS = [
@@ -24,6 +25,7 @@ EXTENSIONS = [
     'incidentreporter.ext.incidents',
     'incidentreporter.ext.premium',
     'incidentreporter.ext.roles',
+    'incidentreporter.ext.statusembed',
 ]
 INTENTS = discord.Intents(
     guilds=True,  # for working guild cache
@@ -99,6 +101,10 @@ class IncidentReporterBot(commands.Bot):
             self.errorlog = Path(self.config.get('errorlog', 'path'))
 
         self.storage = Storage(redis)
+        self.shoppy = httpx.AsyncClient(headers={
+            'Authorization': self.config.get('shoppy', 'api key'),
+            'User-Agent': 'python-httpx (Incident Reporter Bot)'
+        }, base_url='https://shoppy.gg/')
 
         self._loaded_extensions = False
 
