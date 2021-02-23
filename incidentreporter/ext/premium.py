@@ -246,7 +246,7 @@ class Premium(commands.Cog):
                 ))
                 await storage.set('premium', '1')
 
-    @commands.command()
+    @commands.command(help='Creates a gift uuid that can be redeemed')
     @commands.is_owner()
     async def create_gift(self, ctx: commands.Context, product_id: str):
         storage = ctx.bot.get_storage(ctx.guild)  # type: Storage
