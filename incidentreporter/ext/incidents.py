@@ -286,7 +286,8 @@ class Incidents(commands.Cog):
                      message: str):
         await self.update_incident(ctx, STATE_OUTAGE, incident, message)
 
-    @commands.command(name='partial-outage', aliases=['partial'],
+    @commands.command(name='partial-outage',
+                      aliases=['partial', 'partialoutage'],
                       help='Add a partial outage update to an incident')
     @is_staff()
     async def partial_outage(self, ctx: commands.Context, incident: int, *,
