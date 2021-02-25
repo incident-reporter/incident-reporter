@@ -281,3 +281,5 @@ class IncidentReporterBot(commands.Bot):
             ),
             color=self.colorsg['failure']
         ))
+
+        self.dispatch('unhandled_command_error', ctx, exception, error)

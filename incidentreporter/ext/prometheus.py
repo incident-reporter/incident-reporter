@@ -39,7 +39,8 @@ class Prometheus(commands.Cog):
         self.pr_commands.inc()
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, exception):
+    async def on_unhandled_command_error(self, ctx: commands.Context,
+                                         exception, error: str):
         self.pr_exceptions.inc()
 
 
