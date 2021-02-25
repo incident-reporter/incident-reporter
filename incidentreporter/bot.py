@@ -196,7 +196,7 @@ class IncidentReporterBot(commands.Bot):
                     ))
             elif isinstance(exception, commands.NotOwner):
                 return await ctx.send(embed=discord.Embed(
-                    description='This command is reserved for bot owners.',
+                    description='This command is reserved for my owners.',
                     color=self.colorsg['failure']
                 ))
             elif isinstance(exception, commands.ChannelNotFound):
