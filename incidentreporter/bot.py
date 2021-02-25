@@ -11,6 +11,7 @@ import aredis
 import discord
 from discord.ext import commands
 import httpx
+from humanfriendly import format_timespan
 
 from .storage import Storage
 from .util import NotStaff, NotPremium
@@ -198,6 +199,13 @@ class IncidentReporterBot(commands.Bot):
                 return await ctx.send(embed=discord.Embed(
                     description='This command is reserved for my owners.',
                     color=self.colorsg['failure']
+                ))
+            elif isinstance(exception, commands.CommandOnCooldown):
+                return await ctx.send(embed=discord.Embed(
+                    description=f'This command is currently on cooldown.\n'
+                                f'This command can be used again in **'
+                                f'{format_timespan(exception.retry_after)}**.',
+                    color=self.config.colors['failure']
                 ))
             elif isinstance(exception, commands.ChannelNotFound):
                 return await ctx.send(embed=discord.Embed(
