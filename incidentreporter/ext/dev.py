@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 
 from ..bot import EXTENSIONS
+from ..storage import Storage
 
 
 class Developer(commands.Cog):
@@ -83,7 +84,6 @@ class Developer(commands.Cog):
             description=f'UUID: `{gift}`',
             color=ctx.bot.colorsg['success']
         ))
-
 
 
 def setup(bot: commands.Bot):

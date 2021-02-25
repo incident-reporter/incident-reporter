@@ -22,7 +22,8 @@ class Prometheus(commands.Cog):
             'incidentreporter_commands', 'Total commands', registry=registry
         )
         self.pr_exceptions = Counter(
-            'incidentreporter_exceptions', 'Unhandled exceptions', registry=registry
+            'incidentreporter_exceptions', 'Unhandled exceptions',
+            registry=registry
         )
         self.pr_guilds = Gauge(
             'incidentreporter_guilds', 'Guilds', registry=registry

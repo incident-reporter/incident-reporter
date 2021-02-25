@@ -18,7 +18,8 @@ ORDER = (STATE_OUTAGE, STATE_PARTIAL_OUTAGE, STATE_MAINTENANCE, STATE_RESOLVED)
 
 class StatusEmbed(commands.Cog):
     @staticmethod
-    async def update_statusembed(ctx: commands.Context, id: int, incident=False):
+    async def update_statusembed(ctx: commands.Context, id: int,
+                                 incident: bool = False):
         gstorage = ctx.bot.get_storage(ctx.guild)  # type: Storage
         storage = gstorage / 'statusembed' / str(id)
 
