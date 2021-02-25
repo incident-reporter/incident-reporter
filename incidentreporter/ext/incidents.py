@@ -1,6 +1,7 @@
 
 import datetime
 import json
+import typing as t
 
 import discord
 from discord.ext import commands
@@ -62,9 +63,13 @@ class Incidents(commands.Cog):
         if status is not None:
             if state == STATE_RESOLVED:
                 messageid = await storage.get_int('message')
-                id = await storage.get_int('textid')
-                await gstorage.delete(f'incident:{incident}:channel',
-                                      f'statusembed:{status}:incident:{id}')
+                id = [int(x)
+                      for x in (await storage.get_str('textid')).split(',')]
+                await storage.delete('channel')
+                for textid in id:
+                    await gstorage.delete(
+                        f'statusembed:{status}:incident:{textid - 1}'
+                    )
                 await ctx.bot.get_cog('StatusEmbed').update_statusembed(
                     ctx, status, incident=True
                 )
@@ -211,7 +216,7 @@ class Incidents(commands.Cog):
     async def create_new(
                 self, ctx: commands.Context, channel: discord.TextChannel,
                 state: str, message: str, *,
-                status: int = None, textid: int = None
+                status: int = None, textid: t.List[int] = None
             ):
         perms = channel.permissions_for(ctx.guild.me)
         if not perms.send_messages:
@@ -256,9 +261,11 @@ class Incidents(commands.Cog):
         await storage.set(f'incident:{incident}:channel', channel.id)
         if status is not None:
             await storage.set(f'incident:{incident}:status', status)
-            await storage.set(f'incident:{incident}:textid', textid - 1)
-            await storage.set(f'statusembed:{status}:incident:{textid - 1}',
-                              incident)
+            await storage.set(f'incident:{incident}:textid',
+                              ','.join(map(str, textid)))
+            for x in textid:
+                await storage.set(f'statusembed:{status}:incident:{x - 1}',
+                                  incident)
         await self.update_incident(ctx, state, incident, message)
 
         prefix = (await ctx.bot.get_command_prefix(ctx.bot, ctx.message))[0]
@@ -309,8 +316,8 @@ class Incidents(commands.Cog):
     @is_staff()
     @has_premium()
     async def statusincident(
-                self, ctx: commands.Context, id: int, textid: int, state: str, *,
-                message: str
+                self, ctx: commands.Context, id: int, textid: str, state: str,
+                *, message: str
             ):
         gstorage = ctx.bot.get_storage(ctx.guild)  # type: Storage
         storage = gstorage / 'statusembed' / str(id)
@@ -320,14 +327,27 @@ class Incidents(commands.Cog):
                 color=ctx.bot.colorsg['failure']
             ))
 
+        try:
+            textid = [int(x) for x in textid.split(',')]
+        except ValueError:
+            prefix = f'{ctx.prefix}statusincident {id}'
+            return await ctx.send(embed=discord.Embed(
+                description=(
+                    f'Not a number or list of numers.\n\n'
+                    f'- `{prefix} 1`\n'
+                    f'- `{prefix} 1,2,3`'
+                ),
+                color=ctx.bot.colorsg['failure']
+            ))
+
         texts = storage.as_list('text')
-        if textid <= 0 or textid > await texts.len():
+        if min(textid) <= 0 or max(textid) > await texts.len():
             return await ctx.send(embed=discord.Embed(
                 description='Invalid text id.',
                 color=ctx.bot.colorsg['failure']
             ))
 
-        if await storage.exists(f'incident:{textid - 1}'):
+        if any([await storage.exists(f'incident:{x - 1}') for x in textid]):
             return await ctx.send(embed=discord.Embed(
                 description='There already is an ongoing issue with that '
                             'system.',

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- You can now create an incident for multiple system in statusembeds
+
 ## [0.2.1]
 
 ### Fixed
