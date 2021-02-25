@@ -1,6 +1,5 @@
 
 import logging
-import uuid
 import re
 
 import discord
@@ -245,17 +244,6 @@ class Premium(commands.Cog):
                     icon_url=ctx.author.avatar_url
                 ))
                 await storage.set('premium', '1')
-
-    @commands.command(help='Creates a gift uuid that can be redeemed')
-    @commands.is_owner()
-    async def create_gift(self, ctx: commands.Context, product_id: str):
-        storage = ctx.bot.get_storage(ctx.guild)  # type: Storage
-        gift = uuid.uuid4()
-        await storage[0].set(f'premium-gift:{gift}', product_id)
-        return await ctx.send(embed=discord.Embed(
-            description=f'UUID: `{gift}`',
-            color=ctx.bot.colorsg['success']
-        ))
 
 
 def setup(bot: commands.Bot):
