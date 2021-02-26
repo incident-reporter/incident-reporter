@@ -313,7 +313,7 @@ class Incidents(commands.Cog):
                       message: str):
         await self.update_incident(ctx, STATE_RESOLVED, incident, message)
 
-    @commands.command(help='')
+    @commands.command(help='Create an incident tied to a statusembed')
     @is_staff()
     @has_premium()
     async def statusincident(
