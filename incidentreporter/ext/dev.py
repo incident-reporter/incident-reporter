@@ -1,5 +1,6 @@
 
 import datetime
+import subprocess
 import uuid
 
 import discord
@@ -84,6 +85,15 @@ class Developer(commands.Cog):
             description=f'UUID: `{gift}`',
             color=ctx.bot.colorsg['success']
         ))
+
+    @commands.command(help='Updates the bot')
+    @commands.is_owner()
+    async def dev_update(self, ctx: commands.Context):
+        await ctx.send('Pulling from git')
+        subprocess.call(['git', 'pull'])  # pull updates from github
+        await ctx.send('Alright, restarting :)')
+        ctx.bot.restart = True
+        await ctx.bot.close()
 
 
 def setup(bot: commands.Bot):

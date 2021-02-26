@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Error handler for being on cooldown
 - `partialoutage` alias for `partial-outage`
+- `dev_update` command for pulling from git and restarting thte bot
 
 ### Fixed
 

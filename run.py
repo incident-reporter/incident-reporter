@@ -36,6 +36,9 @@ async def main():
 
     bot = IncidentReporterBot(config, redis)
     await bot.start(config.get('general', 'bot token'))
+    if getattr(bot, 'restart'):
+        import subprocess, sys
+        subprocess.call([sys.executable, 'run.py'])
 
 
 if __name__ == '__main__':
