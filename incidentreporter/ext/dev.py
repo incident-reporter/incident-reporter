@@ -95,6 +95,42 @@ class Developer(commands.Cog):
         ctx.bot.restart = True
         await ctx.bot.close()
 
+    @commands.command(help='Bans a server from using the bot')
+    @commands.is_owner()
+    async def dev_ban(self, ctx: commands.Context, guildid: int, *,
+                      reason: str):
+        storage = ctx.bot.storage / 'guild' / guildid  # type: Storage
+        await storage.set('ban', reason)
+        await ctx.send(embed=discord.Embed(
+            description='Guild has been banned from using the bot.',
+            color=ctx.bot.colorsg['success']
+        ))
+
+    @commands.command(help='Allows a server to use the bot again')
+    @commands.is_owner()
+    async def dev_unban(self, ctx: commands.Context, guildid: int):
+        storage = ctx.bot.storage / 'guild' / guildid  # type: Storage
+        await storage.delete('ban')
+        await ctx.send(embed=discord.Embed(
+            description='Guild can now use the bot again.',
+            color=ctx.bot.colorsg['success']
+        ))
+
+    @commands.command(help='Bot leaves the server')
+    @commands.is_owner()
+    async def dev_leave(self, ctx: commands.Context, guildid: int):
+        guild = ctx.bot.get_guild(guildid)
+        if guild is None:
+            return await ctx.send(embed=discord.Embed(
+                description='Guild not found',
+                color=ctx.bot.colorsg['failure']
+            ))
+        await guild.leave()
+        await ctx.send(embed=discord.Embed(
+            description='Bot left the guild.',
+            color=ctx.bot.colorsg['success']
+        ))
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(Developer())

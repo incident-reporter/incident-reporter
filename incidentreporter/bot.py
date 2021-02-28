@@ -14,7 +14,7 @@ import httpx
 from humanfriendly import format_timespan
 
 from .storage import Storage
-from .util import NotStaff, NotPremium
+from .util import NotStaff, NotPremium, GuildBanned, is_guild_banned
 
 
 EXTENSIONS = [
@@ -113,6 +113,7 @@ class IncidentReporterBot(commands.Bot):
             commands.bot_has_permissions(embed_links=True).predicate,
             call_once=True
         )
+        self.add_check(is_guild_banned().predicate, call_once=True)
 
     async def on_ready(self):
         if not self._loaded_extensions:
@@ -233,6 +234,16 @@ class IncidentReporterBot(commands.Bot):
             elif isinstance(exception, NotPremium):
                 return await ctx.send(embed=discord.Embed(
                     description='You need premium to use this command',
+                    color=self.colorsg['failure']
+                ))
+            elif isinstance(exception, GuildBanned):
+                return await ctx.send(embed=discord.Embed(
+                    description=(
+                        f'Your server has been banend from using the bot.\n'
+                        f'All bans are final and not appealable.\n\n'
+                        f'Reason for ban:\n'
+                        f'```\n{exception.args[0]}\n```'
+                    ),
                     color=self.colorsg['failure']
                 ))
 
