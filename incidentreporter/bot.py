@@ -239,7 +239,7 @@ class IncidentReporterBot(commands.Bot):
             elif isinstance(exception, GuildBanned):
                 return await ctx.send(embed=discord.Embed(
                     description=(
-                        f'Your server has been banend from using the bot.\n'
+                        f'Your server has been banned from using this bot.\n'
                         f'All bans are final and not appealable.\n\n'
                         f'Reason for ban:\n'
                         f'```\n{exception.args[0]}\n```'
